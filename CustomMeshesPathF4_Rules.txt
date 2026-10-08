@@ -1,0 +1,12 @@
+# RuleType | PluginName.extension | Form ID of rule to apply: Path (relative path)
+# RuleType | PluginName.extension | Form ID of the rule to apply : MeshPath : Mesh path to change
+
+# Player Default Rules
+# Actor | Fallout4.esm | 7 : Player_Meshes\Meshes\
+
+# Read the nif file under Data\Meshes\CWC\Meshes\ instead of Data\Meshes\ when the race is Children of the Commonwealth
+Race | CWC-Main.esp | F99 : CWC\Meshes\
+
+# The same but for vanilla child races
+Race | Fallout4.esm | 11D83F : CWC\Meshes\
+Race | Fallout4.esm | 11EB96 : CWC\Meshes\
