@@ -1,0 +1,67 @@
+name: Release
+
+# Publishes the DLL committed at the repository root as a GitHub release.
+# Release notes are read from .github/release-notes/<tag>.md.
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Release tag (vMAJOR.MINOR.PATCH)
+        required: true
+        default: v2.0.0
+      prerelease:
+        description: Mark as a pre-release
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+
+      - name: Package
+        env:
+          TAG: ${{ inputs.tag }}
+        run: |
+          set -euo pipefail
+          if [[ ! "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::tag must look like v1.2.3, got '$TAG'"
+            exit 1
+          fi
+          if [[ ! -f ".github/release-notes/${TAG}.md" ]]; then
+            echo "::error::missing .github/release-notes/${TAG}.md"
+            exit 1
+          fi
+
+          plugins=dist/package/F4SE/Plugins
+          mkdir -p "$plugins/CustomMeshesPathF4"
+          cp CustomMeshesPathF4.dll CustomMeshesPathF4.ini CustomMeshesPathF4_Rules.txt "$plugins/"
+          cp licenses/MinHook-LICENSE.txt "$plugins/CustomMeshesPathF4/"
+          (cd dist/package && zip -r -X "../CustomMeshesPathF4-${TAG}.zip" F4SE)
+          cp CustomMeshesPathF4.dll dist/
+          unzip -l "dist/CustomMeshesPathF4-${TAG}.zip"
+
+      - name: Publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ inputs.tag }}
+          PRERELEASE: ${{ inputs.prerelease }}
+        run: |
+          set -euo pipefail
+          flags=()
+          if [[ "$PRERELEASE" == "true" ]]; then
+            flags+=(--prerelease)
+          fi
+          gh release create "$TAG" \
+            --target "$GITHUB_SHA" \
+            --title "CustomMeshesPathF4 ${TAG#v}" \
+            --notes-file ".github/release-notes/${TAG}.md" \
+            "${flags[@]}" \
+            "dist/CustomMeshesPathF4-${TAG}.zip" \
+            dist/CustomMeshesPathF4.dll

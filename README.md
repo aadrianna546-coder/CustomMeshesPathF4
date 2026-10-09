@@ -62,7 +62,7 @@ These IDs are derived from the ordering of known functions around them, not read
 - each address must be the start of a function in `Fallout4.exe`;
 - the file-open function must be one the game calls with a `"meshes\"` prefix argument. Nearby IDs are tried if 2269474 doesn't pass.
 
-If a check fails, the plugin logs the reason (with any candidate functions it found) and disables itself instead of patching the wrong code. A verified ID can then be set in the `[Advanced]` section.
+If a check fails, the plugin logs the reason (with any candidate functions it found) and disables itself. The actor-build hook can only be checked for landing on a function start, so a wrong ID there would show up as meshes not being redirected, or a crash while actors load, rather than as a log message. A verified ID can be set in the `[Advanced]` section.
 
 Everything else (forms, data handler, extra data, `BSFixedString`, the model processor chain) uses F4SE 0.7.2's own 1.10.984 addresses. Hooks are installed with [MinHook](https://github.com/TsudaKageyu/minhook), which relocates the Next-Gen function prologues instead of assuming the old ones.
 
