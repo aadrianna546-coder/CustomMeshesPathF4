@@ -2,6 +2,7 @@ name: Release
 
 # Publishes the DLL committed at the repository root as a GitHub release.
 # Release notes are read from .github/release-notes/<tag>.md.
+# Running it again for an existing tag updates that release's pre-release flag and notes.
 on:
   workflow_dispatch:
     inputs:
@@ -50,10 +51,25 @@ jobs:
       - name: Publish
         env:
           GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
           TAG: ${{ inputs.tag }}
           PRERELEASE: ${{ inputs.prerelease }}
         run: |
           set -euo pipefail
+
+          # an existing release only gets its flags, title and notes updated; its tag and files stay as published
+          if gh release view "$TAG" > /dev/null 2>&1; then
+            flags=(--prerelease="$PRERELEASE")
+            if [[ "$PRERELEASE" != "true" ]]; then
+              flags+=(--latest)
+            fi
+            gh release edit "$TAG" \
+              --title "CustomMeshesPathF4 ${TAG#v}" \
+              --notes-file ".github/release-notes/${TAG}.md" \
+              "${flags[@]}"
+            exit 0
+          fi
+
           flags=()
           if [[ "$PRERELEASE" == "true" ]]; then
             flags+=(--prerelease)
